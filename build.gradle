@@ -1,0 +1,158 @@
+plugins {
+    id 'dev.architectury.loom' version '1.14-SNAPSHOT' apply false
+    id 'architectury-plugin' version '3.4-SNAPSHOT'
+    id 'com.github.johnrengelman.shadow' version '8.1.1' apply false
+    // Optional Kotlin support for devs who prefer it
+    id 'org.jetbrains.kotlin.jvm' version '2.2.10' apply false
+    id 'co.uzzu.dotenv.gradle' version '4.0.0'
+    id "me.modmuss50.mod-publish-plugin" version "1.1.0"
+}
+
+architectury {
+    minecraft = project.minecraft_version
+}
+
+allprojects {
+    group = rootProject.maven_group
+    version = rootProject.mod_version
+}
+
+subprojects {
+    apply plugin: 'dev.architectury.loom'
+    apply plugin: 'architectury-plugin'
+    apply plugin: 'maven-publish'
+
+    base {
+        archivesName = "$rootProject.archives_name-$project.name"
+    }
+
+    // Centralized Repositories: No need to declare these in child modules anymore
+    repositories {
+        mavenCentral()
+        maven { url 'https://maven.impactdev.net/repository/development/' }
+        maven { url 'https://maven.impactdev.net/repository/maven-public/' }
+        maven { url 'https://thedarkcolour.github.io/KotlinForForge/' }
+        maven { url 'https://maven.neoforged.net/releases' }
+        maven { url 'https://maven.fabricmc.net' }
+        maven {
+            name = "Modrinth"
+            url = "https://api.modrinth.com/maven"
+        }
+    }
+
+    dependencies {
+        minecraft "net.minecraft:minecraft:$rootProject.minecraft_version"
+        mappings loom.officialMojangMappings()
+    }
+
+    java {
+        withSourcesJar()
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        it.options.release = 21
+    }
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                artifactId = base.archivesName.get()
+                from components.java
+            }
+        }
+    }
+}
+
+// ============================================================================
+// AUTO-PUBLISH CONFIGURATION (CurseForge, Modrinth, Discord Webhook)
+// ============================================================================
+
+Properties dotenv = new Properties()
+File envFile = file(".env")
+
+if (envFile.exists()) {
+    envFile.withInputStream { stream ->
+        dotenv.load(stream)
+    }
+}
+
+def resolveEnv = { String key ->
+    String value = dotenv.getProperty(key)
+    return value != null ? value : System.getenv(key)
+}
+
+publishMods {
+    // Requires a CHANGELOG.md file in your root directory
+    changelog = file("CHANGELOG.md").exists() ? file("CHANGELOG.md").text : "No changelog provided."
+    type = STABLE
+
+    String modrinthToken = resolveEnv("MODRINTH_TOKEN")
+    String curseforgeToken = resolveEnv("CURSEFORGE_TOKEN")
+    String discordWebhook = resolveEnv("DISCORD_WEBHOOK")
+
+    // Safely disables publishing if tokens are missing (prevents crashes during normal dev)
+    dryRun = modrinthToken == null || curseforgeToken == null || discordWebhook == null
+
+    def cfOptions = curseforgeOptions {
+        accessToken = curseforgeToken
+        projectId = project.hasProperty('curseforge_id') ? project.curseforge_id : "000000"
+        clientRequired = true
+        serverRequired = true
+        minecraftVersions.add(rootProject.minecraft_version)
+    }
+
+    def mrOptions = modrinthOptions {
+        accessToken = modrinthToken
+        projectId = project.hasProperty('modrinth_id') ? project.modrinth_id : "000000"
+        minecraftVersions.add(rootProject.minecraft_version)
+    }
+
+    curseforge("curseforgeFabric") {
+        from cfOptions
+        file project(":fabric")
+        modLoaders.add("fabric")
+        requires("fabric-api")
+        requires("cobblemon")
+        requires("architectury-api")
+    }
+
+    modrinth("modrinthFabric") {
+        from mrOptions
+        file project(":fabric")
+        modLoaders.add("fabric")
+        requires("fabric-api")
+        requires("cobblemon")
+        requires("architectury-api")
+    }
+
+    curseforge("curseforgeNeoForge") {
+        from cfOptions
+        file project(":neoforge")
+        modLoaders.add("neoforge")
+        requires("cobblemon")
+        requires("architectury-api")
+    }
+
+    modrinth("modrinthNeoForge") {
+        from mrOptions
+        file project(":neoforge")
+        modLoaders.add("neoforge")
+        requires("cobblemon")
+        requires("architectury-api")
+    }
+
+    if (discordWebhook != null) {
+        discord {
+            webhookUrl = discordWebhook
+            dryRunWebhookUrl = discordWebhook
+            username = "Mod Release Notifications"
+            content = changelog.map { "# A new version has been released! \n" + it }
+            style {
+                look = "MODERN"
+                color = "#266e10"
+            }
+        }
+    }
+}

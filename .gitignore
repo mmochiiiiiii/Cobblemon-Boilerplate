@@ -1,0 +1,40 @@
+# =========================
+# Gradle & Build Output
+# =========================
+.gradle/
+build/
+*/build/
+*/*/build/
+*/.gradle/
+
+# =========================
+# IDE (IntelliJ IDEA)
+# =========================
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# =========================
+# Minecraft Runtime (Test Environment)
+# =========================
+run/
+*/run/
+logs/
+usercache.json
+banned-ips.json
+banned-players.json
+ops.json
+whitelist.json
+
+# =========================
+# Environment Variables
+# =========================
+.env
+
+# =========================
+# OS Generated Files
+# =========================
+.DS_Store
+Thumbs.db

@@ -1,0 +1,24 @@
+architectury {
+    common rootProject.enabled_platforms.split(',')
+}
+
+loom {
+    enableTransitiveAccessWideners.set(true)
+}
+
+dependencies {
+    // We depend on Fabric Loader here to use the Fabric @Environment annotations,
+    // which get remapped to the correct annotations on each platform.
+    // Do NOT use other classes from Fabric Loader.
+
+    // Fabric Loader & Architectury
+    modCompileOnly "net.fabricmc:fabric-loader:$rootProject.fabric_loader_version"
+    modImplementation "dev.architectury:architectury:$rootProject.architectury_api_version"
+
+    // Kotlin
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib:2.2.10"
+    compileOnly "org.jetbrains.kotlin:kotlin-reflect:2.2.10"
+
+    // Cobblemon API
+    modCompileOnly "com.cobblemon:mod:$rootProject.cobblemon_version"
+}
