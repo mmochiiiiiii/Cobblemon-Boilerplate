@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "example_mod",
+  "version": "${version}",
+  "name": "ExampleMod",
+  "description": "A universal boilerplate for Cobblemon supporting both Fabric and NeoForge.",
+  "authors": [
+    "YourName"
+  ],
+  "contact": {
+    "homepage": "YourWebsite"
+  },
+  "license": "All-Rights-Reserved",
+  "icon": "assets/example_mod/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.yourname.yourmod.fabric.ExampleModFabric"
+    ],
+    "client": [
+      "com.yourname.yourmod.fabric.client.ExampleModFabricClient"
+    ]
+  },
+  "mixins": [
+    "example_mod.mixins.json"
+  ],
+  "depends": {
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "architectury": ">=13.0.8",
+    "fabric-api": "*",
+    "cobblemon": ">=1.7.0"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}
