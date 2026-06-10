@@ -21,6 +21,7 @@ subprojects {
     apply plugin: 'dev.architectury.loom'
     apply plugin: 'architectury-plugin'
     apply plugin: 'maven-publish'
+    apply plugin: 'org.jetbrains.kotlin.jvm'
 
     base {
         archivesName = "$rootProject.archives_name-$project.name"

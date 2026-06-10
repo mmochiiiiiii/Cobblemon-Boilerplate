@@ -15,10 +15,6 @@ dependencies {
     modCompileOnly "net.fabricmc:fabric-loader:$rootProject.fabric_loader_version"
     modImplementation "dev.architectury:architectury:$rootProject.architectury_api_version"
 
-    // Kotlin
-    compileOnly "org.jetbrains.kotlin:kotlin-stdlib:2.2.10"
-    compileOnly "org.jetbrains.kotlin:kotlin-reflect:2.2.10"
-
     // Cobblemon API
     modCompileOnly "com.cobblemon:mod:$rootProject.cobblemon_version"
 }
