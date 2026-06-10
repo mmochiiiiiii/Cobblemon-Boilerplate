@@ -26,8 +26,9 @@ jobs:
         run: |
           set -euo pipefail
 
-          # 1. Get Version from Gradle
-          RAW_VERSION=$(grep -m 1 "version =" build.gradle.kts | cut -d '"' -f 2)
+          # 1. Get Version from Gradle safely
+          # Using '|| true' ensures that if grep fails to find 'version =', it won't crash the script due to 'set -e'
+          RAW_VERSION=$(grep -m 1 "version =" build.gradle.kts | cut -d '"' -f 2 || true)
           if [ -z "$RAW_VERSION" ]; then RAW_VERSION="Unknown"; fi
 
           # 2. Define basic variables
@@ -126,7 +127,7 @@ jobs:
               ]
             }' > payload.json
 
-          # 5. Send it to the first webhook
+          # 5. Send it to the webhook
           curl --fail-with-body --retry 3 --retry-delay 2 -i -H "Content-Type: application/json" \
                -X POST \
                -d @payload.json \
